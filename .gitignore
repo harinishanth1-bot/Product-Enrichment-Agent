@@ -1,0 +1,30 @@
+# Python Virtual Environment
+venv/
+ENV/
+env/
+.venv/
+
+# Byte-compiled / optimized files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Data & Output Artifacts
+**/uploads/*
+!**/uploads/.gitkeep
+**/output/*
+!**/output/.gitkeep
+**/out/*
+!**/out/.gitkeep
+
+# IDE & OS Specific
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Environment & Credentials
+.env
+*.json
+!package.json
+*.log

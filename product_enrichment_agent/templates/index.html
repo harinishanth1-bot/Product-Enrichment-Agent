@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enterprise Product Intelligence Platform | Automated SKU Enrichment</title>
+  <meta name="description" content="Enterprise-grade AI product catalog enrichment platform with Google Vertex AI search grounding, unit standardization, and audit evidence tracking.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #090d16;
+      --card-bg: rgba(18, 26, 43, 0.85);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-border-hover: rgba(99, 102, 241, 0.3);
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.15);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-sub: #64748b;
+      --success: #10b981;
+      --success-bg: rgba(16, 185, 129, 0.12);
+      --warning: #f59e0b;
+      --warning-bg: rgba(245, 158, 11, 0.12);
+      --danger: #ef4444;
+      --nav-bg: rgba(15, 23, 42, 0.95);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body {
+      background: var(--bg-dark);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.08) 0px, transparent 50%);
+      background-attachment: fixed;
+      color: var(--text-main);
+      min-height: 100vh;
+      padding-bottom: 2rem;
+    }
+
+    /* Top Enterprise Navbar */
+    nav.navbar {
+      background: var(--nav-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--card-border);
+      padding: 0.6rem 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .brand-logo {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 0.4rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 0.95rem;
+      color: white;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .brand-text h1 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-main);
+      letter-spacing: -0.01em;
+    }
+
+    .brand-text p {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .nav-status {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--card-border);
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background-color: var(--warning);
+    }
+
+    .status-dot.active {
+      background-color: var(--success);
+      box-shadow: 0 0 8px var(--success);
+    }
+
+    .container {
+      max-width: 1140px;
+      margin: 1rem auto 0 auto;
+      padding: 0 1rem;
+    }
+
+    /* Banners */
+    .alert-banner {
+      border-radius: 0.5rem;
+      padding: 0.65rem 1rem;
+      margin-bottom: 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.85rem;
+    }
+
+    .alert-banner.warning-banner {
+      background: var(--warning-bg);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .alert-banner.success-banner {
+      background: var(--success-bg);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .alert-banner p {
+      font-size: 0.8rem;
+      line-height: 1.3;
+      margin-top: 0.1rem;
+    }
+
+    .btn-alert {
+      background: var(--warning);
+      color: #0f172a;
+      font-weight: 700;
+      padding: 0.35rem 0.85rem;
+      border-radius: 0.375rem;
+      border: none;
+      cursor: pointer;
+      font-size: 0.775rem;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .btn-alert:hover {
+      background: #d97706;
+      color: white;
+    }
+
+    /* Compact Cards */
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 0.75rem;
+      padding: 1rem 1.25rem;
+      margin-bottom: 0.85rem;
+      box-shadow: 0 6px 20px -8px rgba(0, 0, 0, 0.4);
+      transition: border-color 0.2s;
+    }
+
+    .card:hover {
+      border-color: var(--card-border-hover);
+    }
+
+    .card-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .card-title {
+      font-size: 1.025rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .step-number {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: rgba(99, 102, 241, 0.2);
+      color: var(--accent);
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      font-size: 0.75rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Compact Drag & Drop Upload Bar */
+    .dropzone {
+      border: 2px dashed rgba(99, 102, 241, 0.35);
+      border-radius: 0.6rem;
+      padding: 0.85rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: rgba(15, 23, 42, 0.4);
+    }
+
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--accent);
+      background: rgba(56, 189, 248, 0.06);
+    }
+
+    .dropzone-icon {
+      font-size: 1.5rem;
+      color: var(--accent);
+    }
+
+    .dropzone h3 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 0.1rem;
+    }
+
+    .dropzone p {
+      color: var(--text-muted);
+      font-size: 0.775rem;
+    }
+
+    .form-group {
+      margin-bottom: 0.75rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.775rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 0.3rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 0.5rem 0.85rem;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--card-border);
+      border-radius: 0.4rem;
+      color: var(--text-main);
+      font-size: 0.875rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-control:focus {
+      border-color: var(--primary);
+    }
+
+    .row-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 0.85rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.65rem 1.25rem;
+      background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+      color: white;
+      font-weight: 700;
+      font-size: 0.875rem;
+      border: none;
+      border-radius: 0.4rem;
+      cursor: pointer;
+      width: 100%;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    .btn:hover {
+      opacity: 0.95;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: rgba(30, 41, 59, 0.9);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      box-shadow: none;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(51, 65, 85, 0.9);
+    }
+
+    .btn-sm {
+      padding: 0.3rem 0.75rem;
+      font-size: 0.775rem;
+      width: auto;
+    }
+
+    .pill-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-top: 0.35rem;
+    }
+
+    .pill {
+      padding: 0.2rem 0.6rem;
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      border-radius: 0.3rem;
+      font-size: 0.775rem;
+      font-weight: 600;
+      color: #a5b4fc;
+    }
+
+    .checkbox-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 0.5rem;
+      margin-top: 0.35rem;
+      background: rgba(15, 23, 42, 0.6);
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      border: 1px solid var(--card-border);
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-main);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .checkbox-label input[type="checkbox"] {
+      width: 15px;
+      height: 15px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: rgba(15, 23, 42, 0.8);
+      border-radius: 9999px;
+      overflow: hidden;
+      margin: 0.65rem 0;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(to right, var(--primary), var(--accent));
+      transition: width 0.3s ease;
+    }
+
+    /* Compact Pipeline Stepper */
+    .pipeline-stepper {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 0.85rem;
+    }
+
+    .stage-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.65rem 0.85rem;
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--card-border);
+      border-radius: 0.5rem;
+      transition: all 0.2s ease;
+    }
+
+    .stage-item.active {
+      background: rgba(99, 102, 241, 0.12);
+      border-color: var(--primary);
+    }
+
+    .stage-item.completed {
+      background: rgba(16, 185, 129, 0.08);
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    .stage-icon {
+      font-size: 1.1rem;
+      line-height: 1;
+      margin-top: 0.1rem;
+    }
+
+    .stage-content {
+      flex: 1;
+    }
+
+    .stage-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.15rem;
+    }
+
+    .stage-title {
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .stage-badge {
+      font-size: 0.675rem;
+      font-weight: 700;
+      padding: 0.15rem 0.5rem;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .stage-badge.pending {
+      background: rgba(148, 163, 184, 0.15);
+      color: var(--text-muted);
+      border: 1px solid rgba(148, 163, 184, 0.3);
+    }
+
+    .stage-badge.running {
+      background: rgba(56, 189, 248, 0.2);
+      color: var(--accent);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+    }
+
+    .stage-badge.done {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--success);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+
+    .stage-desc {
+      font-size: 0.775rem;
+      color: var(--text-muted);
+    }
+
+    .stage-details {
+      margin-top: 0.35rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--accent);
+      background: rgba(15, 23, 42, 0.7);
+      padding: 0.35rem 0.65rem;
+      border-radius: 0.3rem;
+      display: inline-block;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+    }
+
+    /* Compact Metrics Grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 0.65rem;
+      margin-top: 0.75rem;
+    }
+
+    .metric-box {
+      background: rgba(15, 23, 42, 0.6);
+      padding: 0.65rem 0.85rem;
+      border-radius: 0.5rem;
+      border: 1px solid var(--card-border);
+    }
+
+    .metric-value {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    .metric-subtext {
+      font-size: 0.7rem;
+      color: #a5b4fc;
+      margin-top: 0.1rem;
+      font-weight: 600;
+    }
+
+    .metric-label {
+      font-size: 0.725rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-top: 0.15rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    /* Compact Timing Tables */
+    .timing-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 0.65rem;
+      font-size: 0.8rem;
+      background: rgba(15, 23, 42, 0.6);
+      border-radius: 0.4rem;
+      overflow: hidden;
+      border: 1px solid var(--card-border);
+    }
+
+    .timing-table th {
+      background: rgba(30, 41, 59, 0.9);
+      color: var(--accent);
+      text-align: left;
+      padding: 0.45rem 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .timing-table td {
+      padding: 0.45rem 0.75rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
+    }
+
+    .timing-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Enterprise Navbar -->
+  <nav class="navbar">
+    <div class="nav-brand">
+      <div class="brand-logo">E</div>
+      <div class="brand-text">
+        <h1>Enterprise Product Intelligence</h1>
+        <p>Google Vertex AI Grounded Catalog Enrichment Engine</p>
+      </div>
+    </div>
+    <div class="nav-status">
+      <div id="preflight-badge" class="status-pill">
+        <span id="badge-dot" class="status-dot"></span>
+        <span id="badge-text">Checking Service Status...</span>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+
+    <!-- Connected Status Banner -->
+    <div id="adc-success-banner" class="alert-banner success-banner hidden">
+      <div>
+        <strong style="color: #34d399;">✅ Connected to Google Vertex AI Grounding Service</strong>
+        <p id="adc-success-text">Application Default Credentials active</p>
+      </div>
+    </div>
+
+    <!-- ADC Expiration Warning Banner -->
+    <div id="adc-banner" class="alert-banner warning-banner hidden">
+      <div>
+        <strong>🔑 Authentication Action Required</strong>
+        <p id="adc-banner-text">Application Default Credentials expired. Re-authenticate to resume Vertex AI Grounding.</p>
+      </div>
+      <button id="btn-reauth" class="btn-alert">🔑 Re-Authenticate Account</button>
+    </div>
+
+    <!-- STEP 1: Upload Catalog File -->
+    <section id="card-upload" class="card">
+      <div id="dropzone" class="dropzone">
+        <input type="file" id="file-input" accept=".csv, .xlsx, .xls" style="display: none;">
+        <div style="display: flex; align-items: center; gap: 0.85rem;">
+          <div class="dropzone-icon">📥</div>
+          <div>
+            <h3>Drop Supplier Catalog File (CSV or XLSX)</h3>
+            <p>Supports files up to 32 MB with mixed missing attribute schemas</p>
+          </div>
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm" style="pointer-events: none;">Browse File</button>
+      </div>
+    </section>
+
+    <!-- STEP 2: Schema Analysis & Target Attribute Selection -->
+    <section id="card-schema" class="card hidden">
+      <div class="card-header-bar">
+        <div class="card-title">
+          <span class="step-number">2</span> Schema Detection & Target Attribute Scope
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label>Loaded Catalog File</label>
+        <input type="text" id="cfg-filename" class="form-control" readonly>
+      </div>
+
+      <div style="margin-bottom: 1.5rem;">
+        <label style="font-size:0.85rem; font-weight:600; color: var(--text-muted); text-transform: uppercase;">Detected Product Identity Columns (Read-Only Context):</label>
+        <div id="list-identity" class="pill-list"></div>
+      </div>
+
+      <div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+          <label style="font-size:0.85rem; font-weight: 600; color: var(--accent); text-transform: uppercase;">Target Attribute Columns Required for Enrichment:</label>
+          <div>
+            <button id="btn-select-all" type="button" class="btn btn-secondary btn-sm">Select All</button>
+            <button id="btn-deselect-all" type="button" class="btn btn-secondary btn-sm">Deselect All</button>
+          </div>
+        </div>
+        <div id="checkbox-attributes" class="checkbox-grid"></div>
+      </div>
+    </section>
+
+    <!-- STEP 3: Enterprise Grounding & Governance Parameters -->
+    <section id="card-config" class="card hidden">
+      <div class="card-header-bar">
+        <div class="card-title">
+          <span class="step-number">3</span> Enterprise Concurrency, Grounding & Governance Parameters
+        </div>
+      </div>
+      
+      <div class="row-grid">
+        <div class="form-group">
+          <label>Primary SKU Search Column</label>
+          <select id="cfg-search-col" class="form-control"></select>
+        </div>
+        <div class="form-group">
+          <label>Google Cloud Vertex Project ID</label>
+          <input type="text" id="cfg-project" class="form-control" placeholder="Auto-detected GCP project">
+        </div>
+      </div>
+
+      <div class="row-grid">
+        <div class="form-group">
+          <label>Gemini Grounding Model</label>
+          <select id="cfg-model" class="form-control">
+            <option value="gemini-2.5-flash" selected>gemini-2.5-flash (High Throughput)</option>
+            <option value="gemini-2.5-pro">gemini-2.5-pro (Deep Technical Research)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Parallel Worker Hits (Concurrency)</label>
+          <input type="number" id="cfg-concurrency" class="form-control" value="5" min="1" max="10">
+        </div>
+        <div class="form-group">
+          <label>Max Search Depth / Iterations</label>
+          <input type="number" id="cfg-search-depth" class="form-control" value="3" min="1" max="10">
+        </div>
+        <div class="form-group">
+          <label>Low-Confidence Review Cutoff</label>
+          <input type="number" id="cfg-threshold" class="form-control" value="75" min="50" max="100">
+        </div>
+      </div>
+
+      <button id="btn-process" class="btn" style="margin-top: 1rem;">⚡ Launch Parallel Catalog Enrichment Pipeline</button>
+    </section>
+
+    <!-- STEP 4: Live 6-Stage Execution Stepper -->
+    <section id="card-progress" class="card hidden">
+      <div class="card-header-bar">
+        <div class="card-title">
+          <span class="step-number">4</span> Live Modular Pipeline Execution
+        </div>
+      </div>
+      <p id="progress-status" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.5rem;">Initializing pipeline execution...</p>
+      
+      <div class="progress-bar-bg">
+        <div id="progress-bar" class="progress-bar-fill"></div>
+      </div>
+
+      <!-- Live Stage Tracker List -->
+      <div class="pipeline-stepper">
+        <div id="stage-1-item" class="stage-item">
+          <div class="stage-icon">📁</div>
+          <div class="stage-content">
+            <div class="stage-header">
+              <span class="stage-title">Stage 1: File Ingestion & Schema Parsing</span>
+              <span id="stage-1-badge" class="stage-badge pending">Pending</span>
+            </div>
+            <div id="stage-1-desc" class="stage-desc">Parses catalog structure, detects identity & attribute columns.</div>
+            <div id="stage-1-details" class="stage-details hidden"></div>
+          </div>
+        </div>
+
+        <div id="stage-2-item" class="stage-item">
+          <div class="stage-icon">📊</div>
+          <div class="stage-content">
+            <div class="stage-header">
+              <span class="stage-title">Stage 2: Target Attribute & Blank Cell Detection</span>
+              <span id="stage-2-badge" class="stage-badge pending">Pending</span>
+            </div>
+            <div id="stage-2-desc" class="stage-desc">Calculates missing attribute cells across target selected columns.</div>
+            <div id="stage-2-details" class="stage-details hidden"></div>
+          </div>
+        </div>
+
+        <div id="stage-3-item" class="stage-item">
+          <div class="stage-icon">🌐</div>
+          <div class="stage-content">
+            <div class="stage-header">
+              <span class="stage-title">Stage 3: Parallel Evidence-Grounded GenAI Imputation</span>
+              <span id="stage-3-badge" class="stage-badge pending">Pending</span>
+            </div>
+            <div id="stage-3-desc" class="stage-desc">Executes parallel Google Search Grounding for rows with missing values.</div>
+            <div id="stage-3-details" class="stage-details hidden"></div>
+
+            <!-- Real-Time Active Product & Missing Attribute Monitor Box -->
+            <div id="live-grounding-box" class="hidden" style="margin-top: 0.85rem; padding: 1rem; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 0.6rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <span style="font-size: 0.825rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.04em;">⚡ Real-Time Active Product Grounding Monitor</span>
+                <span id="live-active-workers-badge" class="stage-badge running">5 Active Workers</span>
+              </div>
+              
+              <div style="margin-bottom: 0.5rem;">
+                <span style="font-size: 0.775rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em;">Currently Enriching Product:</span>
+                <div id="live-product-title" style="color: #f8fafc; font-size: 0.925rem; font-weight: 700; margin-top: 0.2rem;">-</div>
+              </div>
+
+              <div style="margin-bottom: 0.75rem;">
+                <span style="font-size: 0.775rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em; display: block; margin-bottom: 0.35rem;">Target Missing Attributes Being Grounded:</span>
+                <div id="live-missing-pills" class="pill-list">
+                  <span class="pill" style="background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.3); color: #fbbf24;">Waiting for active worker...</span>
+                </div>
+              </div>
+
+              <!-- Live Execution Feed Log -->
+              <div style="margin-top: 0.5rem;">
+                <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em;">Live Execution Feed:</span>
+                <div id="live-feed-log" style="max-height: 120px; overflow-y: auto; font-family: monospace; font-size: 0.78rem; background: #090d16; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--card-border); color: #cbd5e1; margin-top: 0.25rem;">
+                  <div style="color: #64748b;">[System] Parallel Grounding Engine initialized...</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div id="stage-4-item" class="stage-item">
+          <div class="stage-icon">📐</div>
+          <div class="stage-content">
+            <div class="stage-header">
+              <span class="stage-title">Stage 4: Pydantic v2 Unit Normalization & Symbol Standardization</span>
+              <span id="stage-4-badge" class="stage-badge pending">Pending</span>
+            </div>
+            <div id="stage-4-desc" class="stage-desc">Applies Pydantic v2 schema validators for physical unit symbol standardization (in, lb, V, W, °F) and data validation.</div>
+            <div id="stage-4-details" class="stage-details hidden"></div>
+          </div>
+        </div>
+
+        <div id="stage-5-item" class="stage-item">
+          <div class="stage-icon">🛡️</div>
+          <div class="stage-content">
+            <div class="stage-header">
+              <span class="stage-title">Stage 5: Quality Audit & Confidence Validation</span>
+              <span id="stage-5-badge" class="stage-badge pending">Pending</span>
+            </div>
+            <div id="stage-5-desc" class="stage-desc">Evaluates confidence scores & flags low-confidence fills (&lt;75) for review.</div>
+            <div id="stage-5-details" class="stage-details hidden"></div>
+          </div>
+        </div>
+
+        <div id="stage-6-item" class="stage-item">
+          <div class="stage-icon">📥</div>
+          <div class="stage-content">
+            <div class="stage-header">
+              <span class="stage-title">Stage 6: Output Export & Artifact Generation</span>
+              <span id="stage-6-badge" class="stage-badge pending">Pending</span>
+            </div>
+            <div id="stage-6-desc" class="stage-desc">Generates multi-sheet Excel/CSV, evidence trace JSON, and review CSV.</div>
+            <div id="stage-6-details" class="stage-details hidden"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 5: Client-Ready Analytics & Performance Center -->
+    <section id="card-results" class="card hidden">
+      <div class="card-header-bar">
+        <div class="card-title">
+          <span class="step-number">5</span> Enrichment Metrics & Performance Analytics Center
+        </div>
+      </div>
+      
+      <!-- Primary Summary Metrics & Catalog Coverage KPI -->
+      <div class="metrics-grid">
+        <div class="metric-box" style="border-color: rgba(16, 185, 129, 0.5); background: rgba(6, 78, 59, 0.25); grid-column: span 4; padding: 0.65rem 0.85rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <span style="font-size: 1.25rem;">📈</span>
+              <div>
+                <span class="metric-label" style="font-weight: 700; color: #a7f3d0; text-transform: uppercase; letter-spacing: 0.03em; font-size: 0.75rem; margin-bottom: 0.1rem; display: block;">Catalog Data Coverage Expansion KPI</span>
+                <strong id="res-coverage-expansion" class="metric-value" style="color: #34d399; font-size: 1.5rem; font-weight: 800;">0.0% ➔ 0.0%</strong>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.85rem;">
+              <div id="res-coverage-gain" style="color: #10b981; font-weight: 800; font-size: 0.95rem; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); padding: 0.25rem 0.65rem; border-radius: 0.4rem; display: inline-block;">+0.0% Increase</div>
+              <div id="res-coverage-cells" style="color: #94a3b8; font-size: 0.775rem;">0 of 0 cells filled</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="metric-box">
+          <div id="res-total-rows" class="metric-value">0</div>
+          <div class="metric-label">Total Catalog Rows</div>
+        </div>
+        <div class="metric-box">
+          <div id="res-filled-cells" class="metric-value">0</div>
+          <div class="metric-label">Attributes Grounded & Filled</div>
+        </div>
+        <div class="metric-box">
+          <div id="res-flagged-cells" class="metric-value" style="color: var(--warning);">0</div>
+          <div class="metric-label">Flagged Fills (&lt;75)</div>
+        </div>
+      </div>
+
+      <!-- Granular Timing & Performance Analytics Grid -->
+      <h4 style="margin-top: 1rem; margin-bottom: 0.4rem; font-size: 0.875rem; font-weight: 700; color: var(--accent);">⏱️ Execution Duration & Per-Product/Attribute Performance</h4>
+      
+      <div class="metrics-grid">
+        <div class="metric-box">
+          <div id="time-total-pipeline" class="metric-value">0.0s</div>
+          <div class="metric-label">Total Duration</div>
+        </div>
+        <div class="metric-box">
+          <div id="time-avg-product" class="metric-value">0.0s</div>
+          <div class="metric-label">Avg Time / Product</div>
+        </div>
+        <div class="metric-box">
+          <div id="time-max-product" class="metric-value">0.0s</div>
+          <div id="time-max-product-sku" class="metric-subtext">SKU: N/A</div>
+          <div class="metric-label">Max Product Time</div>
+        </div>
+        <div class="metric-box">
+          <div id="time-min-product" class="metric-value">0.0s</div>
+          <div id="time-min-product-sku" class="metric-subtext">SKU: N/A</div>
+          <div class="metric-label">Min Product Time</div>
+        </div>
+        <div class="metric-box">
+          <div id="time-max-attribute" class="metric-value">0.0s</div>
+          <div id="time-max-attribute-name" class="metric-subtext">Attr: N/A</div>
+          <div class="metric-label">Max Attribute Time</div>
+        </div>
+        <div class="metric-box">
+          <div id="time-min-attribute" class="metric-value">0.0s</div>
+          <div id="time-min-attribute-name" class="metric-subtext">Attr: N/A</div>
+          <div class="metric-label">Min Attribute Time</div>
+        </div>
+      </div>
+
+      <!-- Stage Duration Breakdown Table -->
+      <h5 style="margin-top: 1rem; margin-bottom: 0.35rem; font-size: 0.8rem; color: var(--text-muted);">📋 Process Stage Duration Breakdown</h5>
+      <table class="timing-table">
+        <thead>
+          <tr>
+            <th>Pipeline Stage Process</th>
+            <th>Duration (seconds)</th>
+            <th>Share of Total</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-stage-timings">
+          <tr><td colspan="3">No timing data recorded yet</td></tr>
+        </tbody>
+      </table>
+
+      <!-- Attribute-Level Performance Breakdown Table -->
+      <h5 style="margin-top: 1rem; margin-bottom: 0.35rem; font-size: 0.8rem; color: var(--text-muted);">📊 Per-Attribute Imputation Performance</h5>
+      <table class="timing-table">
+        <thead>
+          <tr>
+            <th>Attribute Column</th>
+            <th>Avg Time (s)</th>
+            <th>Max Time (s)</th>
+            <th>Min Time (s)</th>
+            <th>Sample Count</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-attribute-timings">
+          <tr><td colspan="5">No attribute timing data recorded yet</td></tr>
+        </tbody>
+      </table>
+
+      <!-- Download Actions -->
+      <div style="margin-top: 1rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.65rem;">
+        <a id="link-output" class="btn btn-sm" href="#" target="_blank">📥 Download Enriched Workbook (XLSX)</a>
+        <a id="link-evidence" class="btn btn-secondary btn-sm" href="#" target="_blank">📄 Download Evidence Trace (JSON)</a>
+        <a id="link-review" class="btn btn-secondary btn-sm" href="#" target="_blank">🔍 Download Review Queue (CSV)</a>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    let currentFilePath = null;
+    let activeTaskId = null;
+    let pollInterval = null;
+
+    async function checkPreflight() {
+      try {
+        const res = await fetch('/api/preflight');
+        const data = await res.json();
+        const dot = document.getElementById('badge-dot');
+        const text = document.getElementById('badge-text');
+        const warnBanner = document.getElementById('adc-banner');
+        const successBanner = document.getElementById('adc-success-banner');
+        const successText = document.getElementById('adc-success-text');
+
+        if (data.active_project && !document.getElementById('cfg-project').value) {
+          document.getElementById('cfg-project').value = data.active_project;
+        }
+
+        if (data.client_initialized && data.adc_valid) {
+          dot.classList.add('active');
+          text.textContent = `Grounding Active (${data.active_account || 'Account Connected'})`;
+          
+          successText.textContent = `Account: ${data.active_account || 'Connected'} | Project: ${data.active_project || 'Auto-detected'} | Model: ${data.model_name}`;
+          successBanner.classList.remove('hidden');
+          warnBanner.classList.add('hidden');
+        } else {
+          dot.classList.remove('active');
+          const errDetail = data.errors[0] || 'ADC credentials expired or unauthenticated.';
+          text.textContent = `Auth Action Needed (${data.active_account || 'Unauthenticated'})`;
+          
+          document.getElementById('adc-banner-text').textContent = `Account: ${data.active_account || 'None'}. Detail: ${errDetail}`;
+          warnBanner.classList.remove('hidden');
+          successBanner.classList.add('hidden');
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    checkPreflight();
+
+    document.getElementById('btn-reauth').addEventListener('click', async () => {
+      try {
+        const res = await fetch('/api/reauth', { method: 'POST' });
+        const data = await res.json();
+        alert(data.message || 'Terminal launched! Complete login in the opened terminal window.');
+        
+        let checkCount = 0;
+        const reauthInterval = setInterval(async () => {
+          checkCount++;
+          await checkPreflight();
+          const dot = document.getElementById('badge-dot');
+          if (dot.classList.contains('active') || checkCount > 20) {
+            clearInterval(reauthInterval);
+          }
+        }, 3000);
+      } catch (e) {
+        alert('Failed to trigger reauth: ' + e.message);
+      }
+    });
+
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('file-input');
+
+    dropzone.addEventListener('click', () => fileInput.click());
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('dragover');
+    });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      if (e.dataTransfer.files.length) handleFileUpload(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length) handleFileUpload(e.target.files[0]);
+    });
+
+    async function handleFileUpload(file) {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const res = await fetch('/api/upload', { method: 'POST', body: formData });
+        const data = await res.json();
+
+        if (data.error) {
+          alert('Upload Error: ' + data.error);
+          return;
+        }
+
+        currentFilePath = data.file_path;
+        document.getElementById('cfg-filename').value = `${data.filename} (${data.total_rows} catalog rows)`;
+
+        const searchSelect = document.getElementById('cfg-search-col');
+        searchSelect.innerHTML = '';
+        data.columns.forEach(col => {
+          const opt = document.createElement('option');
+          opt.value = col;
+          opt.textContent = col;
+          if (col === data.recommended_search_column) opt.selected = true;
+          searchSelect.appendChild(opt);
+        });
+
+        const identBox = document.getElementById('list-identity');
+        identBox.innerHTML = '';
+        data.identity_columns.forEach(col => {
+          identBox.innerHTML += `<span class="pill">${col}</span>`;
+        });
+
+        const attrContainer = document.getElementById('checkbox-attributes');
+        attrContainer.innerHTML = '';
+        data.attribute_columns.forEach((col, idx) => {
+          attrContainer.innerHTML += `
+            <label class="checkbox-label">
+              <input type="checkbox" class="chk-attr" value="${col}" checked>
+              <span>${col}</span>
+            </label>
+          `;
+        });
+
+        document.getElementById('card-schema').classList.remove('hidden');
+        document.getElementById('card-config').classList.remove('hidden');
+      } catch (e) {
+        alert('Failed to upload file: ' + e.message);
+      }
+    }
+
+    document.getElementById('btn-select-all').addEventListener('click', () => {
+      document.querySelectorAll('.chk-attr').forEach(chk => chk.checked = true);
+    });
+    document.getElementById('btn-deselect-all').addEventListener('click', () => {
+      document.querySelectorAll('.chk-attr').forEach(chk => chk.checked = false);
+    });
+
+    function resetPipelineStages() {
+      for (let i = 1; i <= 6; i++) {
+        const item = document.getElementById(`stage-${i}-item`);
+        const badge = document.getElementById(`stage-${i}-badge`);
+        const details = document.getElementById(`stage-${i}-details`);
+        
+        item.className = 'stage-item';
+        badge.className = 'stage-badge pending';
+        badge.textContent = 'Pending';
+        details.classList.add('hidden');
+        details.textContent = '';
+      }
+    }
+
+    document.getElementById('btn-process').addEventListener('click', async () => {
+      if (!currentFilePath) return;
+
+      const selectedAttrs = Array.from(document.querySelectorAll('.chk-attr:checked')).map(chk => chk.value);
+      if (selectedAttrs.length === 0) {
+        alert('Please select at least one attribute column required for enrichment.');
+        return;
+      }
+
+      const payload = {
+        file_path: currentFilePath,
+        search_column: document.getElementById('cfg-search-col').value,
+        target_attributes: selectedAttrs,
+        use_genai: true,
+        genai_project: document.getElementById('cfg-project').value || null,
+        genai_model: document.getElementById('cfg-model').value,
+        confidence_threshold: parseInt(document.getElementById('cfg-threshold').value) || 75,
+        max_search_depth: parseInt(document.getElementById('cfg-search-depth').value) || 3,
+        max_concurrency: parseInt(document.getElementById('cfg-concurrency').value) || 5
+      };
+
+      try {
+        resetPipelineStages();
+        const res = await fetch('/api/process', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (data.error) {
+          alert('Process Error: ' + data.error);
+          return;
+        }
+
+        activeTaskId = data.task_id;
+        document.getElementById('card-progress').classList.remove('hidden');
+        document.getElementById('card-results').classList.add('hidden');
+
+        pollInterval = setInterval(pollTaskStatus, 1200);
+      } catch (e) {
+        alert('Failed to start process: ' + e.message);
+      }
+    });
+
+    async function pollTaskStatus() {
+      if (!activeTaskId) return;
+
+      try {
+        const res = await fetch(`/api/status/${activeTaskId}`);
+        const data = await res.json();
+
+        document.getElementById('progress-status').textContent = data.message || 'Processing...';
+        document.getElementById('progress-bar').style.width = `${data.progress || 0}%`;
+
+        if (data.stage_id) {
+          updateStageStepperUI(data.stage_id, data.message, data.stage_details);
+        }
+
+        if (data.status === 'completed') {
+          clearInterval(pollInterval);
+          markAllStagesDone();
+          showResults(data.summary);
+        } else if (data.status === 'failed') {
+          clearInterval(pollInterval);
+          alert('Task failed: ' + (data.error || 'Unknown error'));
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function updateStageStepperUI(currentStageId, message, details) {
+      for (let i = 1; i <= 6; i++) {
+        const item = document.getElementById(`stage-${i}-item`);
+        const badge = document.getElementById(`stage-${i}-badge`);
+        const detailsBox = document.getElementById(`stage-${i}-details`);
+
+        if (i < currentStageId) {
+          item.className = 'stage-item completed';
+          badge.className = 'stage-badge done';
+          badge.textContent = 'Completed';
+        } else if (i === currentStageId) {
+          item.className = 'stage-item active';
+          badge.className = 'stage-badge running';
+          badge.textContent = 'Running';
+
+          if (details && Object.keys(details).length > 0) {
+            detailsBox.classList.remove('hidden');
+            if (i === 1) {
+              detailsBox.textContent = `Rows: ${details.total_rows} | Identity Cols: ${details.identity_cols?.length || 0} | Attribute Cols: ${details.attribute_cols?.length || 0}`;
+            } else if (i === 2) {
+              detailsBox.textContent = `Missing Cells: ${details.total_missing_cells} | Rows Needing Enrichment: ${details.rows_needing_enrichment} | Skipped Complete Rows: ${details.skipped_complete_rows}`;
+            } else if (i === 3) {
+              detailsBox.textContent = `Completed ${details.completed_rows}/${details.total_rows_needing_enrichment} rows (${details.active_workers}x parallel workers) | Current SKU: ${details.current_sku}`;
+              
+              if (details.current_sku) {
+                const liveBox = document.getElementById('live-grounding-box');
+                if (liveBox) liveBox.classList.remove('hidden');
+
+                const prodTitle = details.product_name ? `${details.product_name} (SKU: ${details.current_sku})` : `SKU: ${details.current_sku}`;
+                document.getElementById('live-product-title').textContent = prodTitle;
+
+                if (details.active_workers) {
+                  document.getElementById('live-active-workers-badge').textContent = `${details.active_workers} Active Workers`;
+                }
+
+                const pillsContainer = document.getElementById('live-missing-pills');
+                pillsContainer.innerHTML = '';
+                if (details.missing_attrs && details.missing_attrs.length > 0) {
+                  details.missing_attrs.forEach(attr => {
+                    pillsContainer.innerHTML += `<span class="pill" style="background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.35); color: #fbbf24;">⚠️ ${attr}</span>`;
+                  });
+                } else {
+                  pillsContainer.innerHTML = '<span class="pill" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">All Attributes Complete</span>';
+                }
+
+                const feedLog = document.getElementById('live-feed-log');
+                if (feedLog && (!feedLog.lastSku || feedLog.lastSku !== details.current_sku)) {
+                  feedLog.lastSku = details.current_sku;
+                  const logEntry = document.createElement('div');
+                  logEntry.style.marginBottom = '0.25rem';
+                  logEntry.innerHTML = `<span style="color: #38bdf8;">[${new Date().toLocaleTimeString()}]</span> <strong style="color:#f8fafc;">${details.current_sku}</strong>: Imputing <span style="color:#fbbf24;">[${details.missing_attrs?.join(', ') || ''}]</span> (${details.row_duration_sec || 0}s)`;
+                  feedLog.appendChild(logEntry);
+                  feedLog.scrollTop = feedLog.scrollHeight;
+                }
+              }
+            } else if (i === 6) {
+              detailsBox.textContent = `Filled Attributes: ${details.filled_cells} | Flagged Review: ${details.flagged_cells}`;
+            }
+          }
+        } else {
+          item.className = 'stage-item';
+          badge.className = 'stage-badge pending';
+          badge.textContent = 'Pending';
+        }
+      }
+    }
+
+    function markAllStagesDone() {
+      for (let i = 1; i <= 6; i++) {
+        const item = document.getElementById(`stage-${i}-item`);
+        const badge = document.getElementById(`stage-${i}-badge`);
+        item.className = 'stage-item completed';
+        badge.className = 'stage-badge done';
+        badge.textContent = 'Completed';
+      }
+    }
+
+    function formatDuration(seconds) {
+      if (seconds === undefined || seconds === null || isNaN(seconds)) return '0.0s';
+      const sec = parseFloat(seconds);
+      if (sec < 60) {
+        return `${sec.toFixed(1)}s`;
+      } else if (sec < 3600) {
+        const mins = Math.floor(sec / 60);
+        const remSecs = Math.round(sec % 60);
+        return remSecs > 0 ? `${mins}m ${remSecs}s` : `${mins}m`;
+      } else if (sec < 86400) {
+        const hrs = Math.floor(sec / 3600);
+        const remMins = Math.round((sec % 3600) / 60);
+        return remMins > 0 ? `${hrs}h ${remMins}m` : `${hrs}h`;
+      } else {
+        const days = Math.floor(sec / 86400);
+        const remHrs = Math.round((sec % 86400) / 3600);
+        return remHrs > 0 ? `${days}d ${remHrs}h` : `${days}d`;
+      }
+    }
+
+    function showResults(summary) {
+      document.getElementById('res-total-rows').textContent = summary.total_rows || 0;
+      document.getElementById('res-filled-cells').textContent = summary.filled_cells || 0;
+      document.getElementById('res-flagged-cells').textContent = summary.flagged_cells || 0;
+
+      // Populate Catalog Data Coverage Expansion KPI
+      const cov = summary.coverage_metrics || {};
+      const initCov = cov.initial_coverage_pct !== undefined ? cov.initial_coverage_pct : 0.0;
+      const finalCov = cov.final_coverage_pct !== undefined ? cov.final_coverage_pct : 0.0;
+      const gainCov = cov.coverage_increase_pct !== undefined ? cov.coverage_increase_pct : 0.0;
+
+      document.getElementById('res-coverage-expansion').textContent = `${initCov}% ➔ ${finalCov}%`;
+      document.getElementById('res-coverage-gain').textContent = `+${gainCov}% Coverage Increase`;
+      document.getElementById('res-coverage-cells').textContent = `Populated cells: ${cov.initial_available_cells || 0} ➔ ${cov.final_available_cells || 0} (out of ${cov.total_attribute_cells || 0} total attribute cells)`;
+
+      // Populate Timing Metrics using Human-Readable Duration Formatter
+      const timing = summary.timing_metrics || {};
+      const totalDuration = timing.total_pipeline_duration_sec || 0;
+      document.getElementById('time-total-pipeline').textContent = formatDuration(totalDuration);
+
+      const prodStats = timing.per_product_stats || {};
+      document.getElementById('time-avg-product').textContent = formatDuration(prodStats.avg_time_per_product_sec);
+      
+      const maxProd = prodStats.max_time_per_product || {};
+      document.getElementById('time-max-product').textContent = formatDuration(maxProd.time_sec);
+      document.getElementById('time-max-product-sku').textContent = `SKU: ${maxProd.sku || 'N/A'}`;
+
+      const minProd = prodStats.min_time_per_product || {};
+      document.getElementById('time-min-product').textContent = formatDuration(minProd.time_sec);
+      document.getElementById('time-min-product-sku').textContent = `SKU: ${minProd.sku || 'N/A'}`;
+
+      const attrStats = timing.per_attribute_stats || {};
+      const maxAttr = attrStats.max_time_per_attribute || {};
+      document.getElementById('time-max-attribute').textContent = formatDuration(maxAttr.time_sec);
+      document.getElementById('time-max-attribute-name').textContent = `Attr: ${maxAttr.attribute || 'N/A'}`;
+
+      const minAttr = attrStats.min_time_per_attribute || {};
+      document.getElementById('time-min-attribute').textContent = formatDuration(minAttr.time_sec);
+      document.getElementById('time-min-attribute-name').textContent = `Attr: ${minAttr.attribute || 'N/A'}`;
+
+      // Render Stage Timings Table
+      const stageMap = timing.stage_timings_sec || {};
+      const stageTableBody = document.getElementById('tbody-stage-timings');
+      stageTableBody.innerHTML = '';
+      
+      const stageDisplayNames = {
+        "Stage_1_Ingestion_Sec": "Stage 1: File Ingestion & Schema Parsing",
+        "Stage_2_Blank_Detection_Sec": "Stage 2: Target Attribute & Blank Cell Detection",
+        "Stage_3_Grounding_Imputation_Sec": "Stage 3: Parallel GenAI Grounding Imputation",
+        "Stage_4_Normalization_Sec": "Stage 4: Pydantic v2 Unit Normalization & Symbol Standardization",
+        "Stage_5_Quality_Audit_Sec": "Stage 5: Quality Audit & Confidence Validation",
+        "Stage_6_Export_Sec": "Stage 6: Output Export & Artifact Generation"
+      };
+
+      Object.keys(stageDisplayNames).forEach(k => {
+        const dur = stageMap[k] || 0;
+        const pctShare = totalDuration > 0 ? ((dur / totalDuration) * 100).toFixed(1) : 0;
+        stageTableBody.innerHTML += `
+          <tr>
+            <td><strong>${stageDisplayNames[k]}</strong></td>
+            <td>${formatDuration(dur)}</td>
+            <td>${pctShare}%</td>
+          </tr>
+        `;
+      });
+
+      // Render Attribute Performance Table
+      const attrMap = attrStats.attribute_breakdown || {};
+      const attrTableBody = document.getElementById('tbody-attribute-timings');
+      attrTableBody.innerHTML = '';
+
+      const attrKeys = Object.keys(attrMap);
+      if (attrKeys.length === 0) {
+        attrTableBody.innerHTML = '<tr><td colspan="5">No missing attribute calls performed</td></tr>';
+      } else {
+        attrKeys.forEach(attr => {
+          const item = attrMap[attr];
+          attrTableBody.innerHTML += `
+            <tr>
+              <td><strong>${attr}</strong></td>
+              <td>${formatDuration(item.avg_sec)}</td>
+              <td>${formatDuration(item.max_sec)}</td>
+              <td>${formatDuration(item.min_sec)}</td>
+              <td>${item.sample_count}</td>
+            </tr>
+          `;
+        });
+      }
+
+      document.getElementById('link-output').href = `/download/output/${activeTaskId}`;
+      document.getElementById('link-evidence').href = `/download/evidence/${activeTaskId}`;
+      document.getElementById('link-review').href = `/download/review/${activeTaskId}`;
+
+      document.getElementById('card-results').classList.remove('hidden');
+    }
+  </script>
+</body>
+</html>

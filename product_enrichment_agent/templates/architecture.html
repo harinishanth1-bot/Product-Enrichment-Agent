@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Search Grounding — Complete Architecture</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #0f172a;
+      --card-border: #1e293b;
+      --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.15);
+      --emerald: #10b981;
+      --emerald-glow: rgba(16, 185, 129, 0.15);
+      --warning: #f59e0b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 2rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .header-bar {
+      text-align: center;
+      margin-bottom: 2rem;
+      max-width: 900px;
+    }
+
+    .header-bar h1 {
+      font-size: 1.85rem;
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+
+    .header-bar p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .nav-btn {
+      display: inline-block;
+      margin-top: 1rem;
+      padding: 0.45rem 1rem;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      border-radius: 0.4rem;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: all 0.2s ease;
+    }
+
+    .nav-btn:hover {
+      background: var(--accent);
+      color: #000;
+    }
+
+    .flow-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      max-width: 950px;
+      width: 100%;
+    }
+
+    .flow-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 0.8rem;
+      padding: 1.25rem 1.5rem;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+      position: relative;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .flow-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .step-badge {
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      color: var(--accent);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.25rem 0.65rem;
+      border-radius: 0.4rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .step-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .card-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+      font-size: 0.875rem;
+      color: #cbd5e1;
+    }
+
+    .card-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      line-height: 1.4;
+    }
+
+    .card-list li::before {
+      content: "▸";
+      color: var(--accent);
+      font-weight: bold;
+    }
+
+    .arrow-down {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: var(--accent);
+      font-size: 1.5rem;
+      margin: -0.25rem 0;
+    }
+
+    .grid-sources {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+    }
+
+    .source-box {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--card-border);
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+    }
+
+    .source-box strong {
+      display: block;
+      color: var(--text);
+      font-size: 0.85rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .source-box span {
+      font-size: 0.775rem;
+      color: var(--text-muted);
+    }
+
+    .emerald-badge {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: rgba(16, 185, 129, 0.35);
+      color: var(--emerald);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header-bar">
+    <h1>🌐 Google Search Grounding — System Architecture</h1>
+    <p>Complete 6-Stage Technical Architecture with Pydantic v2 Validation, Pass 2 Fallback Loop, & Emerald Export</p>
+    <a href="/" class="nav-btn">← Back to Web App</a>
+  </div>
+
+  <div class="flow-container">
+
+    <!-- STAGE 1 -->
+    <div class="flow-card">
+      <div class="card-header">
+        <span class="step-title">📁 Stage 1: Ingestion & Missing Attribute Detection</span>
+        <span class="step-badge">Stage 1</span>
+      </div>
+      <ul class="card-list">
+        <li><strong>File Upload</strong>: Parses supplier catalog CSV / XLSX files up to 32 MB.</li>
+        <li><strong>Schema Parser</strong>: Auto-detects Identity Columns (Product Name, Brand, MPN) vs. Target Attribute Columns.</li>
+        <li><strong>Missing Cell Map</strong>: Identifies missing attribute cells per row and calculates baseline catalog coverage %.</li>
+      </ul>
+    </div>
+
+    <div class="arrow-down">↓</div>
+
+    <!-- STAGE 2 -->
+    <div class="flow-card">
+      <div class="card-header">
+        <span class="step-title">⚡ Stage 2: Parallel ThreadPool Worker Dispatcher</span>
+        <span class="step-badge">Stage 2</span>
+      </div>
+      <ul class="card-list">
+        <li><strong>Parallel Workers</strong>: Dispatches rows asynchronously across 5–10 parallel worker threads.</li>
+        <li><strong>Dynamic Prompt Engine</strong>: Combines full un-truncated Product String with required target attributes.</li>
+      </ul>
+    </div>
+
+    <div class="arrow-down">↓</div>
+
+    <!-- STAGE 3 -->
+    <div class="flow-card" style="border-color: rgba(56, 189, 248, 0.4);">
+      <div class="card-header">
+        <span class="step-title">🌐 Stage 3: Vertex AI & Google Search Grounding Engine</span>
+        <span class="step-badge">Stage 3</span>
+      </div>
+      <ul class="card-list">
+        <li><strong>Autonomous Multi-Query Search</strong>: Gemini formulates live Google Search queries for product specs.</li>
+        <li><strong>Multi-Source Scraper</strong>: Scrapes live web pages across OEM manufacturer sites, B2B distributors, and PDF spec sheets:</li>
+      </ul>
+      <div class="grid-sources">
+        <div class="source-box">
+          <strong>Source A: OEM / Manufacturer Official Site</strong>
+          <span>Extracts core specs: Material, PSI Rating, Temp Limits</span>
+        </div>
+        <div class="source-box">
+          <strong>Source B: Major B2B Retailer Catalogs</strong>
+          <span>Extracts Assembled Dimensions: Height, Width, Depth</span>
+        </div>
+        <div class="source-box">
+          <strong>Source C: PDF Technical Manuals</strong>
+          <span>Extracts electrical specs: Voltage, Wattage, Warranty</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow-down">↓</div>
+
+    <!-- STAGE 4 -->
+    <div class="flow-card">
+      <div class="card-header">
+        <span class="step-title">🛡️ Stage 4: Pydantic v2 Schema Validation & Unit Normalization</span>
+        <span class="step-badge">Stage 4</span>
+      </div>
+      <ul class="card-list">
+        <li><strong>Unit Symbol Normalization</strong>: <code>@field_validator('unit')</code> converts unit synonyms (e.g. <em>"inches"</em> → <strong>"in"</strong>, <em>"lbs"</em> → <strong>"lb"</strong>, <em>"volts"</em> → <strong>"V"</strong>).</li>
+        <li><strong>Data Quality Cleaning</strong>: <code>@field_validator('value')</code> cleans string noise (<em>"N/A"</em>, <em>"none"</em> → <code>null</code>).</li>
+        <li><strong>Confidence Bounds Check</strong>: Enforces confidence bounds <code>0 ≤ confidence ≤ 100</code>.</li>
+      </ul>
+    </div>
+
+    <div class="arrow-down">↓</div>
+
+    <!-- STAGE 5 -->
+    <div class="flow-card" style="border-color: rgba(245, 158, 11, 0.4);">
+      <div class="card-header">
+        <span class="step-title">🔁 Stage 5: Algorithmic Pass 2 Null-Recovery Fallback Loop</span>
+        <span class="step-badge" style="background: rgba(245, 158, 11, 0.15); color: var(--warning); border-color: rgba(245, 158, 11, 0.35);">Stage 5</span>
+      </div>
+      <ul class="card-list">
+        <li><strong>Algorithmic Null Detection</strong>: Python inspects Pass 1 output dictionary for remaining null attributes.</li>
+        <li><strong>Pass 2 Targeted Search</strong>: If nulls exist, constructs a hyper-focused search query specifically targeting remaining missing attributes.</li>
+        <li><strong>Result Merging</strong>: Merges Pass 2 grounded recoveries into Pass 1 output map for maximum catalog coverage.</li>
+      </ul>
+    </div>
+
+    <div class="arrow-down">↓</div>
+
+    <!-- STAGE 6 -->
+    <div class="flow-card" style="border-color: rgba(16, 185, 129, 0.4);">
+      <div class="card-header">
+        <span class="step-title">📊 Stage 6: Multi-Sheet Emerald Green Excel Export</span>
+        <span class="step-badge emerald-badge">Stage 6</span>
+      </div>
+      <ul class="card-list">
+        <li><strong>Emerald Green Fill</strong>: Applies soft emerald green background fill (<code>#D1FAE5</code>) to all newly enriched cells in the <strong>Enriched</strong> catalog tab.</li>
+        <li><strong>Evidence Trace Sheet</strong>: Generates <strong>Evidence</strong> tab with exact Source Name, Direct Web URL, Confidence Score, and Quote.</li>
+        <li><strong>Review Queue Sheet</strong>: Generates <strong>Review</strong> tab for low-confidence fills (&lt;75).</li>
+      </ul>
+    </div>
+
+  </div>
+
+</body>
+</html>
