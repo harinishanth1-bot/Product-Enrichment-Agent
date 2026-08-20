@@ -1,31 +1,31 @@
-# 🏬 Enterprise Product Data Enrichment Agent
+# 🔬 Enterprise Product Data Enrichment Agent (Application Subfolder)
 
-> **Autonomous B2B/B2C Catalog Enrichment Engine Powered by Google Vertex AI Search Grounding & Pydantic v2**
+> **End-to-End Data Science Solution for Automated B2B/B2C Catalog Intelligence using Vertex AI Search Grounding, Deterministic Pydantic v2 Schema Enforcement, and Adaptive Null-Recovery**
 
 ---
 
-## 📌 Quick Overview
+## 📌 Subfolder Overview
 
-This subfolder contains the core application code for the **Enterprise Product Data Enrichment Agent**.
+This directory contains the core application modules and web service for the **Product Data Enrichment Agent**:
 
-- **Web Application Server**: [`app.py`](file:///C:/Users/hravic02/.gemini/antigravity/scratch/product_enrichment_repo/product_enrichment_agent/app.py)
-- **Pipeline Processing Engine**: [`run_enrichment.py`](file:///C:/Users/hravic02/.gemini/antigravity/scratch/product_enrichment_repo/product_enrichment_agent/run_enrichment.py)
-- **Core Package**: [`pd_enrichment/`](file:///C:/Users/hravic02/.gemini/antigravity/scratch/product_enrichment_repo/product_enrichment_agent/pd_enrichment)
-  - [`schemas.py`](file:///C:/Users/hravic02/.gemini/antigravity/scratch/product_enrichment_repo/product_enrichment_agent/pd_enrichment/schemas.py): Pydantic v2 Schema & Unit Symbol Normalizer
+- **Flask Web Server & Async Task Queue**: [`app.py`](file:///C:/Users/hravic02/.gemini/antigravity/scratch/product_enrichment_repo/product_enrichment_agent/app.py)
+- **Pipeline Orchestrator**: [`run_enrichment.py`](file:///C:/Users/hravic02/.gemini/antigravity/scratch/product_enrichment_repo/product_enrichment_agent/run_enrichment.py)
+- **Data Science & Validation Core**: [`pd_enrichment/`](file:///C:/Users/hravic02/.gemini/antigravity/scratch/product_enrichment_repo/product_enrichment_agent/pd_enrichment)
+  - [`schemas.py`](file:///C:/Users/hravic02/.gemini/antigravity/scratch/product_enrichment_repo/product_enrichment_agent/pd_enrichment/schemas.py): Pydantic v2 In-Memory Schema & Unit Standardizer
   - [`enricher_genai.py`](file:///C:/Users/hravic02/.gemini/antigravity/scratch/product_enrichment_repo/product_enrichment_agent/pd_enrichment/enricher_genai.py): Google Search Grounding Engine
   - [`exporter.py`](file:///C:/Users/hravic02/.gemini/antigravity/scratch/product_enrichment_repo/product_enrichment_agent/pd_enrichment/exporter.py): Multi-Sheet Emerald Green Excel Exporter
 
-For full documentation, architecture flowcharts, and ROI details, see the **[Master Repository README](../README.md)**.
+For complete business context, data science problem formulation, architecture flowcharts, and ROI metrics, please refer to the **[Master Repository README](../README.md)**.
 
 ---
 
-## 🚀 Running Locally
+## 🚀 Quickstart
 
 ```powershell
-# 1. Activate Virtual Environment
+# Activate virtual environment
 .\venv\Scripts\Activate.ps1
 
-# 2. Run Flask App
+# Run Flask Application
 python app.py
 ```
 Open **`http://127.0.0.1:5000/`** in your browser.
